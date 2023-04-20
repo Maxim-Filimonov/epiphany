@@ -2,6 +2,7 @@ import { ChatOpenAI } from "langchain/chat_models/openai";
 import { HumanChatMessage, SystemChatMessage } from "langchain/schema";
 // import { useFireproof, FireproofCtx } from '@fireproof/core/hooks/use-fireproof'
 import { Fireproof, Index, Listener } from "@fireproof/core";
+// import prompts from "./prompts";
 // import {
 //   Fireproof,
 //   Index,
@@ -122,7 +123,9 @@ export class Discovery {
       new SystemChatMessage(
         `You have read The Four Steps to the Epiphany by Steven Gary Blank and you are ready to
         start your first customer interview. You will help gather people to interview and then interview them.
-        This is the product you are building: ${product}. The customer you are building for is: ${customer}.`
+        This is the product you are building: ${product}. The customer you are building for is: ${customer}.
+        
+        All your communication to the client will happen in Russian. Do not reply in English.`
       ),
       new HumanChatMessage(
         `Based on the product and customer descriptions, give a list of five people that would be interested 
@@ -154,10 +157,11 @@ export class Discovery {
     const summary = await this.bigInterviewer().call([
       new SystemChatMessage(
         `Now that you have interviewed your customers, you have a lot of information. Here are the interview summaries
-        for each of your personas: ${JSON.stringify(this.personas.map(p => p.interviewSummary))}`
+        for each of your personas: ${JSON.stringify(this.personas.map(p => p.interviewSummary))}.`
       ),
       new HumanChatMessage(
-        "Summarize your conversations, highlighting the customers, use-cases, and features that have the most commercial viability."
+        `Summarize your conversations, highlighting the customers, use-cases, and features that have the most commercial viability.
+        Your output should be in Russian`
       ),
     ]);
     this.doc.interviewSummary = summary.text;
@@ -272,14 +276,22 @@ export class Persona {
   async doInterview() {
     this.conversations = []; // reset
     await this.pursueQuestions(
-      "What are the biggest problems a product like this could help you solve?"
+      // "What are the biggest problems a product like this could help you solve?"
+      // translate to russian
+      "Какие самые большие проблемы мой продукт поможет вам решить?"
     );
     await this.pursueQuestions(
-      "How much do these problem cost you in money and time?"
+      // "How much do these problem cost you in money and time?"
+      // "Какова стоимость этих проблем в деньгах и времени?"
     );
-    await this.pursueQuestions("What other solutions are you considering?");
+    // await this.pursueQuestions("What other solutions are you considering?");
+    await this.pursueQuestions("Какие другие решения вы рассматриваете?");
+
     await this.pursueQuestions(
       "If you could wave a magic wand and change anything about this, what would you do?"
+    );
+    await this.pursueQuestions(
+      "Если бы у вас была волшебная палочка и вы могли поменять все что угодно по поводу этого, чтобы бы вы сделали?"
     );
   }
 
@@ -293,25 +305,27 @@ export class Persona {
     if (!this.didAsk) {
       messages.push(
         new SystemChatMessage(
-          `You will act in a dialog as ${
-            this.description
+          `You will act in a dialog as ${this.description
           }. We will interview you about ${this.product} 
-          designed for someone like ${this.customer}. You have a perspective ${
-            this.perspective
+          designed for someone like ${this.customer}. You have a perspective ${this.perspective
           }.
           It is crucial that you stay in character as ${this.displayName()}, so don't say you are an AI model,
           pretend to play along in the dialog. When the interviewer addesses "you" remember that they are talking
-          to ${this.displayName()} and answer convincingly.`
+          to ${this.displayName()} and answer convincingly.
+          
+          All your communication to the client will happen in Russian. Do not reply in English.`
         )
       );
       this.didAsk = true;
     }
     messages.push(
       new SystemChatMessage(`Here is the next question from the human. 
-    Remember to stay in character as ${this.displayName()}. You don't need to say 
-    "As an AI language model, I do not have ..." because the tool is well-labelled with AI disclaimers.
+    Remember to stay in character as ${this.displayName()}.You don't need to say 
+    "As an AI language model, I do not have ..." because the tool is well - labelled with AI disclaimers.
     Just answer the question as if you were ${this.displayName()}. Remember that when the interviewer 
-    says "you" they are talking to ${this.displayName()}.`)
+    says "you" they are talking to ${this.displayName()}.
+      All your communication to the client will happen in Russian. Do not reply in English.
+    `)
     );
     messages.push(new HumanChatMessage(question));
 
@@ -325,7 +339,9 @@ export class Persona {
 
     const furtherQuestions = await this.myInterviewer().call([
       new SystemChatMessage(
-        `Here is the response from ${this.description} to the question: ${question}. What should we ask them next?`
+        `Here is the response from ${this.description} to the question: ${question}. What should we ask them next ? 
+        All your communication to the client will happen in Russian. Do not reply in English.
+        `
       ),
       new HumanChatMessage(qAnswer.text),
     ]);
@@ -336,7 +352,7 @@ export class Persona {
     // console.log(JSON.stringify(this.conversations));
     const qAnswer = await this.myChat().call([
       new SystemChatMessage(
-        `Summarize the interview for another instance of ChatGPT, target summary length is 1000 words.
+        `Summarize the interview in Russian language for another instance of ChatGPT, target summary length is 1000 words.
         Here is the interview text as a reminder: ${JSON.stringify(
           this.conversations
         )}`
