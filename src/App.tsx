@@ -161,7 +161,7 @@ function Home() {
               </label>
               <input
                 className="shadow border-none appearance-none rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-black leading-tight focus:outline-none focus:shadow-outline"
-                type="text"
+                type="password"
                 id="openaikey"
                 name="openaikey"
                 placeholder="sk-..."
